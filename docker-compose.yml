@@ -1,0 +1,52 @@
+version: '3'
+
+services:
+  site_web:
+    # image: webdevops/php-apache-dev:7.2
+    build:
+      context: /Users/sakis/Projects/mechparts.gr
+      dockerfile: Dockerfile
+    container_name: site_web
+    user: root
+    restart: always
+    volumes:
+      - "./:/app"
+    environment:
+      - WEB_ALIAS_DOMAIN=site.gr.loc
+      - WEB_DOCUMENT_ROOT=/app
+      - PHP_DATE_TIMEZONE=EST
+      - PHP_DISPLAY_ERRORS=1
+      - PHP_MEMORY_LIMIT=2048M
+      - PHP_MAX_EXECUTION_TIME=300
+      - PHP_POST_MAX_SIZE=500M
+      - PHP_UPLOAD_MAX_FILESIZE=1024M
+      - PHP_SENDMAIL_PATH='/usr/bin/mhsendmail --smtp-addr mailhog:1025'
+      - PHP_DEBUGGER=xdebug
+      - XDEBUG_REMOTE_CONNECT_BACK=0
+      - XDEBUG_REMOTE_HOST=192.168.1.2
+      - XDEBUG_REMOTE_PORT=9000
+      - php.xdebug.remote_enable=1
+      - php.xdebug.idekey=PHPSTORM
+    ports:
+      - "80:80"
+      - "443:443"
+      - "32834:22"
+    links:
+      - site_db:mysql
+  site_db:
+    image: mariadb:10
+    container_name: site_db
+    restart: always
+    volumes:
+      - ./db-data:/var/lib/mysql:delegated
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=database
+    ports:
+      - "33067:3306"
+  site_mailhog:
+    image: mailhog/mailhog:v1.0.0
+    container_name: site_mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
